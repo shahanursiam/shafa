@@ -11,6 +11,7 @@ const { roleCheck } = require("../middlewares/roleMiddlewares");
 const router = express.Router();
 
 // Admin only
+
 router.get("/users", protect, roleCheck("admin"), getAllUsers);
 router.put("/users/:id/role", protect, roleCheck("admin"), updateUserRole);
 router.delete("/users/:id", protect, roleCheck("admin"), deleteUser);
