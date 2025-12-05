@@ -1,21 +1,38 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
+import authApi from "../api/authApi";
 import { useState } from "react"; 
+import { ToastContainer, toast } from 'react-toastify';
+
 
 const Login = () => {
   const [loginData, setLoginData] = useState({
     email: "",
     password: ""
   });
-  const handleSubmit = (e) => {
+  const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate();
+  const handleChange = (e) => {
+    setLoginData({ ...loginData, [e.target.name]: e.target.value });
+  };
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoginData({
-      email: e.target.email.value,
-      password: e.target.password.value
-    });
-   setLoginData({ email: "", password: "" });
-  }
-   
+    setLoading(true);
+    try {
+      const res = await authApi.login(loginData);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data));
+      toast.success("Logged in successfully!");
+      console.log(res);
+      
+      navigate("/");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white text-gray-500 max-w-96 mx-4 md:p-6 p-4 text-left text-sm rounded-xl shadow-[0px_0px_10px_0px] shadow-black/10">
@@ -29,7 +46,8 @@ const Login = () => {
             type="email"
             placeholder="Enter your email"
             value={loginData.email}
-            onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+            name="email"
+            onChange={handleChange}
             required
           />
           <input
@@ -38,7 +56,8 @@ const Login = () => {
             type="password"
             placeholder="Enter your password"
             value={loginData.password}
-            onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+            name="password"
+            onChange={handleChange}
             required
           />
           <div className="text-right py-4">
@@ -50,8 +69,9 @@ const Login = () => {
             type="submit"
             className="w-full mb-3 bg-indigo-500 py-2.5 rounded-full text-white"
           >
-            Log in
+            {loading ? "Logging In..." : "Log In"}
           </button>
+          <ToastContainer />
         </form>
         <p className="text-center mt-4">
           Don’t have an account?{" "}

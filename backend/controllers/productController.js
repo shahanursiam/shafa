@@ -2,6 +2,7 @@ const Product = require("../models/productModel");
 const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
 
+
 // Helper: Upload buffer to Cloudinary
 const uploadToCloudinary = (fileBuffer, folder) => {
   return new Promise((resolve, reject) => {
@@ -10,6 +11,7 @@ const uploadToCloudinary = (fileBuffer, folder) => {
       else resolve(result);
     });
     streamifier.createReadStream(fileBuffer).pipe(uploadStream);
+    
   });
 };
 
@@ -26,7 +28,8 @@ const createProduct = async (req, res) => {
         images.push({ public_id: result.public_id, url: result.secure_url });
       }
     }
-
+    
+     
     const product = await Product.create({
       name,
       description,
@@ -57,6 +60,12 @@ const getProducts = async (req, res) => {
 
   res.json({ products, page, totalPages: Math.ceil(total / limit), total });
 };
+// get seller or admin created product by seller or admin id
+const getProductsByOwner = async (req, res) => {
+  const products = await Product.find({ seller: req.user.id });
+  if (!products) return res.status(404).json({ message: "No products found for this owner" });
+  res.json(products);
+}
 
 // Get single product
 const getProductById = async (req, res) => {
@@ -106,7 +115,7 @@ const deleteProduct = async (req, res) => {
     await cloudinary.uploader.destroy(img.public_id);
   }
 
-  await product.remove();
+  await product.deleteOne();
   res.json({ message: "Product removed" });
 };
 
@@ -116,4 +125,5 @@ module.exports = {
   getProductById,
   updateProduct,
   deleteProduct,
+  getProductsByOwner,
 };

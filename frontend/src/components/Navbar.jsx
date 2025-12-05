@@ -1,13 +1,22 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { isLoggedIn,getUser,logout } from "../uits/auth";
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const user = getUser();
+  const islogin=isLoggedIn();
+  
+  
   return (
     <div>
       <nav className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-gray-300 bg-white relative transition-all">
-        <div className="text-4xl font-bold text-indigo-600 cursor-pointer" onClick={() => navigate("/")}>Shafa</div>
+        <div
+          className="text-4xl font-bold text-indigo-600 cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          Shafa
+        </div>
 
         {/* Desktop Menu */}
         <div className="hidden sm:flex items-center gap-8">
@@ -65,49 +74,89 @@ const Navbar = () => {
               3
             </button>
           </div>
-
-          <button className="cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full" onClick={() => navigate("/login")}>
-            Login
-          </button>
+          {islogin ? (
+            <div className="dropdown dropdown-end">
+              <div
+                tabIndex={0}
+                role="button"
+                className="btn btn-ghost btn-circle avatar"
+              >
+                <div className="w-10 rounded-full">
+                  <img
+                    alt="User Profile"
+                    src={user?.avatar || "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"}
+                  />
+                </div>
+              </div>
+              <ul
+                tabIndex="-1"
+                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+              >
+                    <li>
+                      <a className="justify-between" onClick={() => navigate("/user/profile")}>Profile</a>
+                    </li>
+                <li>
+                  <a>Order</a>
+                </li>
+                {
+                  (user?.role==="admin" || user?.role==="seller") && (
+                    <li>
+                      <a onClick={() => navigate("/seller/dashboard")}>Dashboard</a>
+                    </li>
+                  )
+                }
+                <li onClick={() => { logout(); navigate("/"); }}>
+                  <a>Logout</a>
+                </li>
+              </ul>
+            </div>
+          ) : (
+            <button
+              className="cursor-pointer px-8 py-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full"
+              onClick={() => navigate("/login")}
+            >
+              Login
+            </button>
+          )}
         </div>
         {/* Mobile Menu Button */}
         <div className=" md:hidden items-center text-sm gap-2 border border-gray-300 px-3 rounded-full flex flex-row">
-            <input
-              className="py-1.5 w-full bg-transparent outline-none placeholder-gray-500"
-              type="text"
-              placeholder="Search products"
+          <input
+            className="py-1.5 w-full bg-transparent outline-none placeholder-gray-500"
+            type="text"
+            placeholder="Search products"
+          />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10.836 10.615 15 14.695"
+              stroke="#7A7B7D"
+              stroke-width="1.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             />
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10.836 10.615 15 14.695"
-                stroke="#7A7B7D"
-                stroke-width="1.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                clip-rule="evenodd"
-                d="M9.141 11.738c2.729-1.136 4.001-4.224 2.841-6.898S7.67.921 4.942 2.057C2.211 3.193.94 6.281 2.1 8.955s4.312 3.92 7.041 2.783"
-                stroke="#7A7B7D"
-                stroke-width="1.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
+            <path
+              clip-rule="evenodd"
+              d="M9.141 11.738c2.729-1.136 4.001-4.224 2.841-6.898S7.67.921 4.942 2.057C2.211 3.193.94 6.281 2.1 8.955s4.312 3.92 7.041 2.783"
+              stroke="#7A7B7D"
+              stroke-width="1.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
         <button
           onClick={() => (open ? setOpen(false) : setOpen(true))}
           aria-label="Menu"
           className="sm:hidden"
         >
           {/* Menu Icon SVG */}
-          
+
           <svg
             width="21"
             height="15"
@@ -129,24 +178,52 @@ const Navbar = () => {
         </button>
 
         {/* Mobile Menu */}
-        
+
         <div
           className={`${
             open ? "flex" : "hidden"
-          } absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start px-5 text-sm md:hidden z-10`}
+          } absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start px-5 text-sm md:hidden z-10 gap-1`}
         >
-          <a href="#" className="block">
+          <a href="#" className="block" onClick={()=>{setOpen(false);}}>
             Home
           </a>
-          <a href="#" className="block">
+          <a href="#" className="block" onClick={()=>{setOpen(false);}}>
             About
           </a>
-          <a href="#" className="block">
+          <a href="#" className="block" onClick={()=>{setOpen(false);}}>
             Contact
           </a>
-          <button className="cursor-pointer px-6 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full text-sm" onClick={() => { setOpen(false); navigate("/login"); }}>
-            Login
-          </button>
+          {islogin ? (
+            <div className=" flex flex-col gap-1">
+              <a href="#" className="block" onClick={()=>{setOpen(false);}}>
+            Profile
+          </a>
+          <a href="#" className="block" onClick={()=>{setOpen(false);}}>
+            Orders
+          </a>
+          {
+            (user?.role==="admin" || user?.role==="seller") && (
+              <a onClick={() => {navigate("/seller/dashboard"); setOpen(false);}} className="block cursor-pointer">
+                Dashboard
+              </a>
+            )
+          }
+          <a onClick={()=>{logout(); navigate('/');setOpen(false);}} className="block cursor-pointer px-6 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full text-sm ">
+            Logout
+          </a>
+             
+            </div>
+          ) : (
+            <button
+              className="cursor-pointer px-6 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full text-sm"
+              onClick={() => {
+                setOpen(false);
+                navigate("/login");
+              }}
+            >
+              Login
+            </button>
+          )}
         </div>
       </nav>
     </div>

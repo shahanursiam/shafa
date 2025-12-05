@@ -3,9 +3,10 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "7d" });
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "7d" });
 };
+
 
 const signup = async (req, res) => {
   const { name, email, password, role } = req.body;
@@ -39,7 +40,8 @@ const login = async (req, res) => {
     name: user.name,
     email: user.email,
     role: user.role,
-    token: generateToken(user._id),
+    profile: user.avatar.url,
+    token: generateToken(user._id, user.role),
   });
 };
 

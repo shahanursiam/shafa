@@ -7,9 +7,13 @@ import Signup from './pages/Signup';
 import Footer from './components/Footer';
 import PageNotFound from './pages/PageNotFound';
 import Contact from './pages/Contact';
+import SellerDashboard from './pages/SellerDashboard';
+import UserProfile from './pages/UserProfile';
+import { ToastContainer } from "react-toastify";
 const App = () => {
   return (
     <div>
+      <ToastContainer />
        <BrowserRouter>
         <Navbar />
         <Routes>
@@ -17,6 +21,8 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/seller/dashboard" element={<SellerDashboard />} />
+          <Route path="/user/profile" element={<UserProfile />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         <Footer />
