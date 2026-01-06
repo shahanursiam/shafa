@@ -6,6 +6,7 @@ const {
   updateProduct,
   deleteProduct,
   getProductsByOwner,
+  getBestSellingProducts,
 } = require("../controllers/productController");
 const { protect } = require("../middlewares/authMiddlewares");
 const { roleCheck } = require("../middlewares/roleMiddlewares");
@@ -18,7 +19,7 @@ router.get("/owner", protect, roleCheck("seller", "admin"), getProductsByOwner);
 // Public
 router.get("/", getProducts);
 router.get("/:id", getProductById);
-
+router.get("/best-selling/list", getBestSellingProducts);
 
 // Seller/Admin
 router.post("/", protect, roleCheck("seller", "admin"), upload.array("images", 4), createProduct);

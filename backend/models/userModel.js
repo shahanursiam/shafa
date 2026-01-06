@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
       },
       url: {
         type: String,
-        default: "https://www.example.com/default-avatar.png", // URL of default image
+        default: "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp", // URL of default image
       },
     },
 
@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema(
       enum: ["buyer", "seller", "admin"],
       default: "buyer",
     },
-    address: [addressSchema],
+    addresses: [addressSchema],
     createdAt: {
       type: Date,
       default: Date.now,

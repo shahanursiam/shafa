@@ -46,7 +46,7 @@ const createProduct = async (req, res) => {
   }
 };
 
-// Get all products
+// Get products
 const getProducts = async (req, res) => {
   const { keyword, category, page = 1, limit = 10 } = req.query;
   const query = {};
@@ -60,6 +60,11 @@ const getProducts = async (req, res) => {
 
   res.json({ products, page, totalPages: Math.ceil(total / limit), total });
 };
+// get best selling products
+const getBestSellingProducts = async (req, res) => {
+  const products = await Product.find().sort({ sold: -1 }).limit(10);
+  res.json(products);
+}
 // get seller or admin created product by seller or admin id
 const getProductsByOwner = async (req, res) => {
   const products = await Product.find({ seller: req.user.id });
@@ -126,4 +131,5 @@ module.exports = {
   updateProduct,
   deleteProduct,
   getProductsByOwner,
+  getBestSellingProducts,
 };

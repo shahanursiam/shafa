@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import productApi from "../api/productApi";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import EditProduct from "./EditProduct";
 
 const MyProduct = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -24,7 +26,7 @@ const MyProduct = () => {
       await productApi.deleteProduct(productId);
       fetchProducts();
       toast.success("Product deleted successfully");
-       // Refresh the product list
+      // Refresh the product list
     } catch (error) {
       console.error("Failed to delete product", error);
       toast.error("Failed to delete product");
@@ -34,6 +36,16 @@ const MyProduct = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // Use this to finish editing
+  const handleUpdateSuccess = () => {
+    setEditingProduct(null);
+    fetchProducts();
+  };
+
+  if (editingProduct) {
+    return <EditProduct product={editingProduct} onCancel={() => setEditingProduct(null)} onUpdateSuccess={handleUpdateSuccess} />
+  }
 
   // Render
   if (loading) return <p>Loading...</p>;
@@ -74,7 +86,7 @@ const MyProduct = () => {
                 <td>{product.price}</td>
                 <td>{product.stock}</td>
                 <td className="">
-                  <button className="btn btn-sm btn-primary mr-2">Edit</button>
+                  <button onClick={() => setEditingProduct(product)} className="btn btn-sm btn-primary mr-2">Edit</button>
                   <button
                     className="btn btn-sm btn-error mt-2 md:mt-0"
                     onClick={() => deleteProduct(product._id)}

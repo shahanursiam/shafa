@@ -8,6 +8,7 @@ const productApi = {
     }),
 
   getProducts: (params) => axiosClient.get("/products", { params }),
+  getBestSellingProducts: () => axiosClient.get("/products/best-selling/list"),
   
   getProductById: (id) => axiosClient.get(`/products/${id}`),
 

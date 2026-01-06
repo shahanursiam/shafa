@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import React, {  useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { isLoggedIn,getUser,logout } from "../uits/auth";
+import { useUser } from "../contexts/UserContext";
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const user = getUser();
-  const islogin=isLoggedIn();
-  
-  
+  const { user, isAuthenticated, logout } = useUser();
+  const [selectpage, setSelectpage] = useState("Home");
   return (
     <div>
       <nav className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-gray-300 bg-white relative transition-all">
@@ -19,10 +17,14 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Menu */}
-        <div className="hidden sm:flex items-center gap-8">
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-          <Link to="/contact">Contact</Link>
+        <div className="hidden sm:flex items-center gap-8 ">
+          <div className=" flex flex-row gap-8">
+            <Link to="/" className={`${selectpage === "Home" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={()=>setSelectpage("Home")}>Home</Link>
+          <Link to="/products" className={`${selectpage === "Products" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={()=>setSelectpage("Products")}>Products</Link>
+          <Link to="/about" className={`${selectpage === "About" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={()=>setSelectpage("About")}>About</Link>
+          <Link to="/contact" className={`${selectpage === "Contact" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={()=>setSelectpage("Contact")}>Contact</Link>
+          </div>
+          
 
           <div className="hidden lg:flex items-center text-sm gap-2 border border-gray-300 px-3 rounded-full">
             <input
@@ -74,7 +76,7 @@ const Navbar = () => {
               3
             </button>
           </div>
-          {islogin ? (
+          {isAuthenticated ? (
             <div className="dropdown dropdown-end">
               <div
                 tabIndex={0}
@@ -84,7 +86,7 @@ const Navbar = () => {
                 <div className="w-10 rounded-full">
                   <img
                     alt="User Profile"
-                    src={user?.avatar || "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"}
+                    src={ user.profile || "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"}
                   />
                 </div>
               </div>
@@ -187,18 +189,22 @@ const Navbar = () => {
           <a href="#" className="block" onClick={()=>{setOpen(false);}}>
             Home
           </a>
-          <a href="#" className="block" onClick={()=>{setOpen(false);}}>
+          <a href="/products" className="block" onClick={()=>{setOpen(false);}}>
+            Products
+          </a>
+          <a href="/about" className="block" onClick={()=>{setOpen(false);}}>
             About
           </a>
-          <a href="#" className="block" onClick={()=>{setOpen(false);}}>
+          <a href="/contact" className="block" onClick={()=>{setOpen(false);}}>
             Contact
           </a>
-          {islogin ? (
+          
+          {isAuthenticated ? (
             <div className=" flex flex-col gap-1">
-              <a href="#" className="block" onClick={()=>{setOpen(false);}}>
+              <a href="/user/profile" className="block" onClick={()=>{setOpen(false);}}>
             Profile
           </a>
-          <a href="#" className="block" onClick={()=>{setOpen(false);}}>
+          <a href="/orders" className="block" onClick={()=>{setOpen(false);}}>
             Orders
           </a>
           {

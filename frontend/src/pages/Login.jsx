@@ -3,30 +3,31 @@ import { Link,useNavigate } from "react-router-dom";
 import authApi from "../api/authApi";
 import { useState } from "react"; 
 import { ToastContainer, toast } from 'react-toastify';
+import { useUser } from "../contexts/UserContext";
 
 
 const Login = () => {
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: ""
-  });
-  const [loading, setLoading] = useState(false);
-  
-  const navigate = useNavigate();
-  const handleChange = (e) => {
-    setLoginData({ ...loginData, [e.target.name]: e.target.value });
-  };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await authApi.login(loginData);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data));
-      toast.success("Logged in successfully!");
-      console.log(res);
-      
-      navigate("/");
+    const { login } = useUser();
+    const [loginData, setLoginData] = useState({
+      email: "",
+      password: ""
+    });
+    const [loading, setLoading] = useState(false);
+    
+    const navigate = useNavigate();
+    const handleChange = (e) => {
+      setLoginData({ ...loginData, [e.target.name]: e.target.value });
+    };
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        const res = await authApi.login(loginData);
+        login(res.data, res.data.token);
+        toast.success("Logged in successfully!");
+        console.log(res);
+        
+        navigate("/");
     } catch (err) {
       toast.error(err.response?.data?.message || "Something went wrong");
     } finally {
