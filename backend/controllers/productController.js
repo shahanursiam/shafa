@@ -48,18 +48,60 @@ const createProduct = async (req, res) => {
 
 // Get products
 const getProducts = async (req, res) => {
-  const { keyword, category, page = 1, limit = 10 } = req.query;
-  const query = {};
-  if (keyword) query.name = { $regex: keyword, $options: "i" };
-  if (category) query.category = category;
+  try {
+    const {
+      keyword,
+      category,
+      minPrice,
+      maxPrice,
+      sort,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
-  const products = await Product.find(query)
-    .skip((page - 1) * limit)
-    .limit(parseInt(limit));
-  const total = await Product.countDocuments(query);
+    const query = {};
 
-  res.json({ products, page, totalPages: Math.ceil(total / limit), total });
+    // 🔍 Search
+    if (keyword) {
+      query.name = { $regex: keyword, $options: "i" };
+    }
+
+    // 📂 Category
+    if (category) {
+      query.category = category;
+    }
+
+    // 💰 Price filter
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    // 🧠 Sort logic
+    let sortOption = {};
+    if (sort === "price_asc") sortOption.price = 1;
+    if (sort === "price_desc") sortOption.price = -1;
+
+    // ⚠️ IMPORTANT: sort BEFORE skip & limit
+    const products = await Product.find(query)
+      .sort(sortOption)
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const total = await Product.countDocuments(query);
+
+    res.json({
+      products,
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
+      total,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
 };
+
 // get best selling products
 const getBestSellingProducts = async (req, res) => {
   const products = await Product.find().sort({ sold: -1 }).limit(10);

@@ -14,10 +14,10 @@ const placeOrder = async (req, res) => {
       return res.status(404).json({ message: "Address not found" });
     }
 
-    let orderItems = [];
-    let totalPrice = 0;
+    // Group items by seller
+    const sellerItemsMap = {};
 
-    // Validate items and calculate price
+    // Validate items, check stock, and group by seller
     for (let item of items) {
       const product = await Product.findById(item.product);
       if (!product) {
@@ -27,40 +27,94 @@ const placeOrder = async (req, res) => {
         return res.status(400).json({ message: `Insufficient stock for ${product.name}` });
       }
 
-      // Update stock
-      product.stock -= item.quantity;
-      await product.save();
+      // Prevent seller from buying their own product
+      if (product.seller.toString() === req.user.id.toString()) {
+          return res.status(400).json({ message: `You cannot buy your own product: ${product.name}` });
+      }
 
-      orderItems.push({
-        product: product._id,
-        name: product.name,
-        quantity: item.quantity,
-        price: product.price,
-        
+      const sellerId = product.seller.toString();
+      if (!sellerItemsMap[sellerId]) {
+        sellerItemsMap[sellerId] = [];
+      }
+
+      sellerItemsMap[sellerId].push({
+        product,
+        quantity: item.quantity
       });
-
-      totalPrice += product.price * item.quantity;
     }
 
-    const order = await Order.create({
-      user: req.user.id,
-      orderItems,
-      shippingInfo: {
-        address: address.street,
-        city: address.city,
-        state: address.state,
-        postalCode: address.postalCode,
-        country: address.country,
-        phone: address.phone,
-        fullName: address.fullName,
-      },
-      itemsPrice: totalPrice,
-      totalAmount: totalPrice, // Add tax/shipping logic here if needed
-      orderStatus: "Processing"
-    });
+    const createdOrders = [];
 
-    res.status(201).json(order);
+    // Create an order for each seller
+    for (const sellerId in sellerItemsMap) {
+      const sellerGroup = sellerItemsMap[sellerId];
+      let orderItems = [];
+      let itemsPrice = 0;
 
+      for (const groupItem of sellerGroup) {
+         const { product, quantity } = groupItem;
+         
+         // Update stock
+         product.stock -= quantity;
+         await product.save();
+
+         orderItems.push({
+            product: product._id,
+            name: product.name,
+            quantity: quantity,
+            price: product.price,
+         });
+         itemsPrice += product.price * quantity;
+      }
+
+      const shippingPrice = 50; // Per order/package shipping cost
+      const totalAmount = itemsPrice + shippingPrice;
+
+      const order = await Order.create({
+        user: req.user.id,
+        seller: sellerId,
+        orderItems,
+        shippingInfo: {
+          address: address.street,
+          city: address.city,
+          state: address.state,
+          postalCode: address.postalCode,
+          country: address.country,
+          phone: address.phone,
+          fullName: address.fullName,
+        },
+        paymentInfo: req.body.paymentInfo,
+        itemsPrice,
+        shippingPrice,
+        totalAmount,
+        orderStatus: "Processing"
+      });
+
+      createdOrders.push(order);
+    }
+
+    res.status(201).json({ message: "Orders placed successfully", orders: createdOrders });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get all orders (Admin/Seller)
+const getAllOrders = async (req, res) => {
+  try {
+    let query = {};
+    
+    // If seller, only show orders assigned to them
+    if (req.user.role === 'seller') {
+      query = { seller: req.user.id };
+    }
+
+    const orders = await Order.find(query)
+        .populate("user", "name email")
+        .sort({ createdAt: -1 });
+        
+    res.json(orders);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -111,4 +165,5 @@ module.exports = {
   getMyOrders,
   getOrderById,
   updateOrderStatus,
+  getAllOrders,
 };

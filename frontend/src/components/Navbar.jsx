@@ -1,17 +1,33 @@
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useCart } from "../contexts/CartContext";
 import { useUser } from "../contexts/UserContext";
+
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useUser();
+  const { getCartCount } = useCart();
   const [selectpage, setSelectpage] = useState("Home");
+  const [search, setSearch] = useState("");
+
+  const handleSearch = (e) => {
+    if (e.key === "Enter" || e.keyCode === 13) {
+      if (search.trim()) {
+        navigate(`/products?keyword=${search}`);
+      } else {
+        navigate("/products");
+      }
+    }
+  };
+
   return (
     <div>
       <nav className="flex items-center justify-between px-6 md:px-16 lg:px-24 xl:px-32 py-4 border-b border-gray-300 bg-white relative transition-all">
         <div
           className="text-4xl font-bold text-indigo-600 cursor-pointer"
-          onClick={() => navigate("/")}
+
+          onClick={() => { setSelectpage("Home"); navigate("/"); }}
         >
           Shafa
         </div>
@@ -19,18 +35,21 @@ const Navbar = () => {
         {/* Desktop Menu */}
         <div className="hidden sm:flex items-center gap-8 ">
           <div className=" flex flex-row gap-8">
-            <Link to="/" className={`${selectpage === "Home" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={()=>setSelectpage("Home")}>Home</Link>
-          <Link to="/products" className={`${selectpage === "Products" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={()=>setSelectpage("Products")}>Products</Link>
-          <Link to="/about" className={`${selectpage === "About" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={()=>setSelectpage("About")}>About</Link>
-          <Link to="/contact" className={`${selectpage === "Contact" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={()=>setSelectpage("Contact")}>Contact</Link>
+            <Link to="/" className={`${selectpage === "Home" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={() => setSelectpage("Home")}>Home</Link>
+            <Link to="/products" className={`${selectpage === "Products" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={() => setSelectpage("Products")}>Products</Link>
+            <Link to="/about" className={`${selectpage === "About" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={() => setSelectpage("About")}>About</Link>
+            <Link to="/contact" className={`${selectpage === "Contact" ? "text-indigo-600" : "text-gray-700"} hover:text-indigo-600`} onClick={() => setSelectpage("Contact")}>Contact</Link>
           </div>
-          
+
 
           <div className="hidden lg:flex items-center text-sm gap-2 border border-gray-300 px-3 rounded-full">
             <input
               className="py-1.5 w-full bg-transparent outline-none placeholder-gray-500"
               type="text"
               placeholder="Search products"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={handleSearch}
             />
             <svg
               width="16"
@@ -38,6 +57,8 @@ const Navbar = () => {
               viewBox="0 0 16 16"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              className="cursor-pointer"
+              onClick={() => search.trim() && navigate(`/products?keyword=${search}`)}
             >
               <path
                 d="M10.836 10.615 15 14.695"
@@ -57,7 +78,7 @@ const Navbar = () => {
             </svg>
           </div>
 
-          <div className="relative cursor-pointer">
+          <div className="relative cursor-pointer" onClick={() => navigate("/cart")}>
             <svg
               width="18"
               height="18"
@@ -73,7 +94,7 @@ const Navbar = () => {
               />
             </svg>
             <button className="absolute -top-2 -right-3 text-xs text-white bg-indigo-500 w-[18px] h-[18px] rounded-full">
-              3
+              {getCartCount()}
             </button>
           </div>
           {isAuthenticated ? (
@@ -86,7 +107,7 @@ const Navbar = () => {
                 <div className="w-10 rounded-full">
                   <img
                     alt="User Profile"
-                    src={ user.profile || "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"}
+                    src={user.profile || "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"}
                   />
                 </div>
               </div>
@@ -94,14 +115,14 @@ const Navbar = () => {
                 tabIndex="-1"
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
               >
-                    <li>
-                      <a className="justify-between" onClick={() => navigate("/user/profile")}>Profile</a>
-                    </li>
                 <li>
-                  <a>Order</a>
+                  <a className="justify-between" onClick={() => navigate("/user/profile")}>Profile</a>
+                </li>
+                <li>
+                  <a onClick={() => navigate("/orders")}>Orders</a>
                 </li>
                 {
-                  (user?.role==="admin" || user?.role==="seller") && (
+                  (user?.role === "admin" || user?.role === "seller") && (
                     <li>
                       <a onClick={() => navigate("/seller/dashboard")}>Dashboard</a>
                     </li>
@@ -182,42 +203,41 @@ const Navbar = () => {
         {/* Mobile Menu */}
 
         <div
-          className={`${
-            open ? "flex" : "hidden"
-          } absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start px-5 text-sm md:hidden z-10 gap-1`}
+          className={`${open ? "flex" : "hidden"
+            } absolute top-[60px] left-0 w-full bg-white shadow-md py-4 flex-col items-start px-5 text-sm md:hidden z-10 gap-1`}
         >
-          <a href="#" className="block" onClick={()=>{setOpen(false);}}>
+          <a href="#" className="block" onClick={() => { setOpen(false); }}>
             Home
           </a>
-          <a href="/products" className="block" onClick={()=>{setOpen(false);}}>
+          <a href="/products" className="block" onClick={() => { setOpen(false); }}>
             Products
           </a>
-          <a href="/about" className="block" onClick={()=>{setOpen(false);}}>
+          <a href="/about" className="block" onClick={() => { setOpen(false); }}>
             About
           </a>
-          <a href="/contact" className="block" onClick={()=>{setOpen(false);}}>
+          <a href="/contact" className="block" onClick={() => { setOpen(false); }}>
             Contact
           </a>
-          
+
           {isAuthenticated ? (
             <div className=" flex flex-col gap-1">
-              <a href="/user/profile" className="block" onClick={()=>{setOpen(false);}}>
-            Profile
-          </a>
-          <a href="/orders" className="block" onClick={()=>{setOpen(false);}}>
-            Orders
-          </a>
-          {
-            (user?.role==="admin" || user?.role==="seller") && (
-              <a onClick={() => {navigate("/seller/dashboard"); setOpen(false);}} className="block cursor-pointer">
-                Dashboard
+              <a href="/user/profile" className="block" onClick={() => { setOpen(false); }}>
+                Profile
               </a>
-            )
-          }
-          <a onClick={()=>{logout(); navigate('/');setOpen(false);}} className="block cursor-pointer px-6 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full text-sm ">
-            Logout
-          </a>
-             
+              <a href="/orders" className="block" onClick={() => { setOpen(false); }}>
+                Orders
+              </a>
+              {
+                (user?.role === "admin" || user?.role === "seller") && (
+                  <a onClick={() => { navigate("/seller/dashboard"); setOpen(false); }} className="block cursor-pointer">
+                    Dashboard
+                  </a>
+                )
+              }
+              <a onClick={() => { logout(); navigate('/'); setOpen(false); }} className="block cursor-pointer px-6 py-2 mt-2 bg-indigo-500 hover:bg-indigo-600 transition text-white rounded-full text-sm ">
+                Logout
+              </a>
+
             </div>
           ) : (
             <button
